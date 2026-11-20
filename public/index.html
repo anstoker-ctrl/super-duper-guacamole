@@ -21,13 +21,26 @@
       <section>
         <h2>Search RentCast</h2>
         <p id="key-warning" class="warn" hidden>No RentCast API key. Add <code>RENTCAST_API_KEY</code> to <code>.env</code> and restart. Manual entry and CSV still work.</p>
-        <label>State <select id="s-state"></select></label>
-        <label>City (optional) <input id="s-city" placeholder="e.g. Island Park"></label>
-        <label>ZIP (optional) <input id="s-zip" inputmode="numeric"></label>
-        <label class="row"><input type="checkbox" id="s-usemap"> Search around map point instead</label>
-        <label>Radius (miles) <input id="s-radius" type="number" value="50" min="1" max="100"></label>
-        <p class="muted small" id="s-point">Click the map to set a point.</p>
-        <button id="btn-search" class="primary">Search (uses 1 API call)</button>
+        <div class="modes">
+          <label class="row"><input type="radio" name="s-mode" value="states" checked> Whole states</label>
+          <label class="row"><input type="radio" name="s-mode" value="place"> One city or ZIP</label>
+          <label class="row"><input type="radio" name="s-mode" value="map"> Around a map point</label>
+        </div>
+        <div id="mode-states">
+          <div id="s-states" class="states"></div>
+          <p class="small"><button type="button" class="link" id="s-all">Select all</button> · <button type="button" class="link" id="s-none">Clear</button></p>
+          <p class="muted small">Each state uses 1 search. RentCast returns at most 500 homes per search, so big states may be incomplete. A city or ZIP search finds more in one area.</p>
+        </div>
+        <div id="mode-place" hidden>
+          <label>State <select id="s-state"></select></label>
+          <label>City <input id="s-city" placeholder="e.g. Kamas"></label>
+          <label>or ZIP <input id="s-zip" inputmode="numeric"></label>
+        </div>
+        <div id="mode-map" hidden>
+          <label>Radius (miles) <input id="s-radius" type="number" value="50" min="1" max="100"></label>
+          <p class="muted small" id="s-point">Click the map to set a point.</p>
+        </div>
+        <button id="btn-search" class="primary">Search</button>
         <label class="row small"><input type="checkbox" id="s-refresh"> Ignore 24h cache</label>
         <p id="search-status" class="small"></p>
       </section>

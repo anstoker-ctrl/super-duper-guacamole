@@ -38,7 +38,7 @@ if (hasMap) map.on('click', e => {
   if (pointMarker) pointMarker.remove();
   pointMarker = L.circleMarker(e.latlng, { radius: 7, color: '#b45309' }).addTo(map).bindTooltip('Search point');
   $('#s-point').textContent = `Point: ${e.latlng.lat.toFixed(3)}, ${e.latlng.lng.toFixed(3)}`;
-  $('#s-usemap').checked = true;
+  setMode('map');
 });
 
 // ---------- rendering ----------
@@ -168,18 +168,66 @@ $('#dlg-import').addEventListener('close', async () => {
 });
 
 // ---------- search ----------
+const mode = () => document.querySelector('input[name=s-mode]:checked').value;
+const checkedSearchStates = () => [...document.querySelectorAll('#s-states input:checked')].map(i => i.value);
+function setMode(m) {
+  document.querySelector(`input[name=s-mode][value=${m}]`).checked = true;
+  for (const k of ['states', 'place', 'map']) $('#mode-' + k).hidden = k !== m;
+  updateSearchButton();
+}
+function updateSearchButton() {
+  const n = checkedSearchStates().length;
+  $('#btn-search').textContent = mode() === 'states' ? `Search ${n} state${n === 1 ? '' : 's'} (up to ${n} search${n === 1 ? '' : 'es'})` : 'Search (uses 1 search)';
+}
+function bindSearch() {
+  const saved = Array.isArray(prefs.searchStates) ? prefs.searchStates : prefs.states;
+  $('#s-states').innerHTML = Object.keys(ALL_STATES).map(s => `<label class="row"><input type="checkbox" value="${s}" ${saved.includes(s) ? 'checked' : ''}> ${s}</label>`).join('');
+  const onStates = () => { prefs.searchStates = checkedSearchStates(); savePrefs(); updateSearchButton(); };
+  $('#s-states').addEventListener('change', onStates);
+  $('#s-all').onclick = () => { document.querySelectorAll('#s-states input').forEach(i => { i.checked = true; }); onStates(); };
+  $('#s-none').onclick = () => { document.querySelectorAll('#s-states input').forEach(i => { i.checked = false; }); onStates(); };
+  document.querySelectorAll('input[name=s-mode]').forEach(r => r.addEventListener('change', () => setMode(mode())));
+  setMode('states');
+}
+
+async function searchStates(status) {
+  const states = checkedSearchStates();
+  if (!states.length) return alert('Check at least one state.');
+  const q = new URLSearchParams({ states: states.join(','), maxPrice: prefs.maxPrice });
+  if ($('#s-refresh').checked) q.set('refresh', '1');
+  const cost = await api('/api/search/cost?' + q);
+  if (cost.calls > cost.remaining) {
+    return alert(`This needs ${cost.calls} searches but you have ${cost.remaining} left this month. Uncheck some states.`);
+  }
+  if (cost.calls > 0 && !confirm(`This will use ${cost.calls} of your ${cost.remaining} remaining searches this month` +
+    (cost.calls < states.length ? ` (${states.length - cost.calls} state(s) were searched in the last 24 hours and are free).` : '.') + ' Continue?')) return;
+  status.textContent = `Searching ${states.length} state(s)… this can take a minute.`;
+  const r = await api('/api/search/states?' + q);
+  const lines = r.results.map(x => x.ok
+    ? `${x.state}: ${x.matched} homes under your max price (${x.added} new)${x.fromCache ? ', from earlier search' : ''}${x.capped ? ' — hit the 500 limit, some homes may be missing' : ''}`
+    : `${x.state}: ${x.error}`);
+  status.innerHTML = lines.map(esc).join('<br>');
+  showUsage(r.usage);
+  await refresh();
+}
+
 $('#btn-search').onclick = async () => {
+  const status = $('#search-status');
+  if (mode() === 'states') {
+    try { await searchStates(status); } catch (err) { status.textContent = err.message; }
+    return;
+  }
   const q = new URLSearchParams({ maxPrice: prefs.maxPrice });
-  if ($('#s-usemap').checked) {
+  if (mode() === 'map') {
     if (!mapPoint) return alert('Click the map to choose a search point first.');
     q.set('latitude', mapPoint.lat.toFixed(5)); q.set('longitude', mapPoint.lng.toFixed(5)); q.set('radius', $('#s-radius').value || 50);
   } else {
     q.set('state', $('#s-state').value);
     if ($('#s-city').value.trim()) q.set('city', $('#s-city').value.trim());
     if ($('#s-zip').value.trim()) q.set('zipCode', $('#s-zip').value.trim());
+    if (!q.get('city') && !q.get('zipCode')) return alert('Type a city or ZIP, or choose "Whole states".');
   }
   if ($('#s-refresh').checked) q.set('refresh', '1');
-  const status = $('#search-status');
   status.textContent = 'Searching…';
   try {
     const r = await api('/api/search?' + q);
@@ -232,6 +280,7 @@ async function refresh() { listings = await api('/api/listings'); render(); }
 
 (async function init() {
   bindFilters();
+  bindSearch();
   const cfg = await api('/api/config');
   $('#key-warning').hidden = cfg.hasKey;
   $('#btn-search').disabled = !cfg.hasKey;

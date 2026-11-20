@@ -18,6 +18,7 @@ label.row { display: flex; align-items: center; gap: 6px; }
 input:not([type=checkbox]), select, textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; }
 fieldset { border: 1px solid var(--line); border-radius: 6px; margin: 8px 0; }
 .states { display: grid; grid-template-columns: repeat(3, 1fr); }
+.modes { margin-bottom: 6px; }
 button { font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--text); cursor: pointer; }
 button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
 button:disabled { opacity: .5; cursor: not-allowed; }

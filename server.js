@@ -118,7 +118,45 @@ async function search(q) {
     ids.push(fresh.id);
   }
   save();
-  return { fromCache, totalReturned: raw.length, matched: ids.length, added, ids, usage: usage() };
+  return { fromCache, totalReturned: raw.length, capped: raw.length >= params.limit, matched: ids.length, added, ids, usage: usage() };
+}
+
+function stateParams(state) { return { status: 'Active', limit: 500, state }; }
+function isCached(params) {
+  const c = store.cache[JSON.stringify(params)];
+  return Boolean(c && Date.now() - c.at < CACHE_HOURS * 3600e3);
+}
+function parseStates(s) {
+  return [...new Set(String(s || '').toUpperCase().split(',').map(x => x.trim()).filter(x => /^[A-Z]{2}$/.test(x)))];
+}
+
+// How many API calls a multi-state search would use (cached states are free).
+function searchCost(q) {
+  const states = parseStates(q.states);
+  const calls = q.refresh ? states.length : states.filter(s => !isCached(stateParams(s))).length;
+  const u = usage();
+  return { states: states.length, calls, remaining: u.limit - u.used };
+}
+
+// Search several whole states, one RentCast call each. Keeps going if one state fails.
+async function searchStates(q) {
+  const states = parseStates(q.states);
+  if (!states.length) throw httpError(400, 'Check at least one state to search.');
+  const results = [];
+  for (const state of states) {
+    try {
+      const r = await search({ state, maxPrice: q.maxPrice, refresh: q.refresh });
+      results.push({ state, ok: true, fromCache: r.fromCache, totalReturned: r.totalReturned, capped: r.capped, matched: r.matched, added: r.added });
+    } catch (e) {
+      results.push({ state, ok: false, error: e.message });
+      if (e.status === 429 || e.status === 401 || e.status === 400) {
+        // Out of calls or bad key: the rest would fail the same way.
+        for (const s of states.slice(states.indexOf(state) + 1)) results.push({ state: s, ok: false, error: 'Skipped' });
+        break;
+      }
+    }
+  }
+  return { results, usage: usage() };
 }
 
 const USER_FIELDS = ['waterfront', 'notes', 'nightlyRate', 'occupancy', 'rentEstimate', 'favorite', 'hidden', 'acres', 'url', 'description'];
@@ -232,6 +270,8 @@ async function handle(req, res) {
       save();
       return send(res, 200, { ok: true });
     }
+    if (p === '/api/search/cost' && req.method === 'GET') return send(res, 200, searchCost(Object.fromEntries(url.searchParams)));
+    if (p === '/api/search/states' && req.method === 'GET') return send(res, 200, await searchStates(Object.fromEntries(url.searchParams)));
     if (p === '/api/search' && req.method === 'GET') return send(res, 200, await search(Object.fromEntries(url.searchParams)));
     let m = p.match(/^\/api\/listings\/([\w-]+)$/);
     if (m && req.method === 'PUT') {
@@ -263,4 +303,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { handle, parseCsv, clean, fromRentcast };
+module.exports = { handle, parseCsv, clean, fromRentcast, parseStates };
