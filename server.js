@@ -77,6 +77,7 @@ function fromRentcast(r) {
     price: r.price, status: r.status, listedDate: r.listedDate, daysOnMarket: r.daysOnMarket,
     mlsNumber: r.mlsNumber,
     agent: r.listingAgent ? [r.listingAgent.name, r.listingAgent.phone, r.listingAgent.email].filter(Boolean).join(' · ') : '',
+    office: r.listingOffice ? [r.listingOffice.name, r.listingOffice.phone].filter(Boolean).join(' · ') : '',
     url: '',
     waterfront: null,
   };
@@ -185,7 +186,7 @@ async function rentEstimate(id) {
 const NUM_FIELDS = ['price', 'acres', 'lotSize', 'bedrooms', 'bathrooms', 'squareFootage', 'yearBuilt', 'latitude', 'longitude', 'nightlyRate', 'occupancy', 'rentEstimate'];
 function clean(input) {
   const l = {};
-  const allowed = new Set([...NUM_FIELDS, ...USER_FIELDS, 'title', 'formattedAddress', 'city', 'state', 'zipCode', 'propertyType', 'agent', 'source']);
+  const allowed = new Set([...NUM_FIELDS, ...USER_FIELDS, 'title', 'formattedAddress', 'city', 'state', 'zipCode', 'propertyType', 'agent', 'office', 'source']);
   for (const [k, v] of Object.entries(input || {})) {
     if (!allowed.has(k)) continue;
     if (NUM_FIELDS.includes(k)) {

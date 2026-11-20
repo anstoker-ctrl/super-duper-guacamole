@@ -85,18 +85,26 @@ function card(l, s) {
       <p class="small">${esc(yieldTxt)} <span class="muted">(${esc(s.income.basis)}${s.income.annual ? `, ~${fmt$(s.income.annual)}/yr net` : ''})</span></p>
       <div class="bars">${bar('Acreage', s.parts.acreage, 30)}${bar('Water', s.parts.waterfront, 20)}${bar('Rental', s.parts.rental, 25)}${bar('Price', s.parts.price, 25)}</div>
       ${s.flags.length ? `<p class="flags">${s.flags.map(f => `<span>${esc(f)}</span>`).join('')}</p>` : ''}
+      ${l.agent || l.office || l.mlsNumber ? `<p class="small muted">Listed by ${esc([l.agent, l.office].filter(Boolean).join(' · ') || 'unknown agent')}${l.mlsNumber ? ` · MLS #${esc(l.mlsNumber)}` : ''}</p>` : ''}
       ${l.notes ? `<p class="small notes">${esc(l.notes)}</p>` : ''}
       <div class="actions">
         <button data-act="fav" data-id="${esc(l.id)}">${l.favorite ? 'Unfavorite' : 'Favorite'}</button>
         <button data-act="edit" data-id="${esc(l.id)}">Edit / flag water</button>
         ${l.source === 'rentcast' ? `<button data-act="rent" data-id="${esc(l.id)}">Get rent estimate (1 call)</button>` : ''}
-        ${l.url ? `<a href="${esc(l.url)}" target="_blank" rel="noopener">Listing ↗</a>` : ''}
+        ${/^https?:\/\//i.test(l.url || '') ? `<a href="${esc(l.url)}" target="_blank" rel="noopener">Listing ↗</a>` : ''}
+        ${l.formattedAddress ? `<a target="_blank" rel="noopener" href="${esc(zillowUrl(l.formattedAddress))}">Zillow ↗</a>` : ''}
+        ${l.formattedAddress ? `<a target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent(`"${l.formattedAddress}" for sale`)}">Google ↗</a>` : ''}
         ${l.formattedAddress || l.latitude ? `<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.formattedAddress || `${l.latitude},${l.longitude}`)}">Satellite ↗</a>` : ''}
         <button data-act="hide" data-id="${esc(l.id)}">${l.hidden ? 'Unhide' : 'Hide'}</button>
         ${l.source !== 'rentcast' ? `<button data-act="del" data-id="${esc(l.id)}" class="danger">Delete</button>` : ''}
       </div>
     </div>
   </article>`;
+}
+
+// Zillow address search, e.g. https://www.zillow.com/homes/1-Main-St,-Kamas,-UT-84036_rb/
+function zillowUrl(address) {
+  return 'https://www.zillow.com/homes/' + encodeURIComponent(address.trim().replace(/\s+/g, '-')).replace(/%2C/g, ',') + '_rb/';
 }
 
 async function update(id, patch) {
