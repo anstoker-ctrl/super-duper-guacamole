@@ -54,7 +54,9 @@ function render() {
   };
   rows.sort(sorters[prefs.sort] || sorters.score);
 
-  $('#count').textContent = `${rows.length} of ${listings.length} listings match your filters`;
+  const unknown = listings.filter(l => !l.hidden && S.acresOf(l) == null).length;
+  $('#count').textContent = `${rows.length} of ${listings.length} listings match your filters` +
+    (prefs.hideUnknownAcres && unknown ? ` (${unknown} hidden because acreage is unknown)` : '');
   $('#results').innerHTML = rows.map(({ l, s }) => card(l, s)).join('') || '<p class="muted">No matches. Loosen filters, search a new area, or add a listing.</p>';
 
   if (!hasMap) return;
@@ -197,6 +199,7 @@ function bindFilters() {
   $('#f-price').value = prefs.maxPrice;
   $('#f-acres').value = prefs.minAcres;
   $('#f-require-acres').checked = prefs.requireAcres;
+  $('#f-hide-unknown').checked = prefs.hideUnknownAcres;
   $('#f-water').checked = prefs.requireWaterfront;
   $('#f-fav').checked = prefs.favOnly;
   $('#f-hidden').checked = prefs.showHidden;
@@ -207,6 +210,7 @@ function bindFilters() {
     prefs.maxPrice = Number($('#f-price').value) || S.DEFAULT_PREFS.maxPrice;
     prefs.minAcres = Number($('#f-acres').value) || 0.01;
     prefs.requireAcres = $('#f-require-acres').checked;
+    prefs.hideUnknownAcres = $('#f-hide-unknown').checked;
     prefs.requireWaterfront = $('#f-water').checked;
     prefs.favOnly = $('#f-fav').checked;
     prefs.showHidden = $('#f-hidden').checked;

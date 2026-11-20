@@ -13,7 +13,8 @@ test('filters enforce price, acreage and state', () => {
   assert.ok(!S.passes({ price: 350000, acres: 6, state: 'ID' }));
   assert.ok(!S.passes({ price: 250000, acres: 2, state: 'ID' }));
   assert.ok(!S.passes({ price: 250000, acres: 6, state: 'TX' }));
-  assert.ok(S.passes({ price: 250000, state: 'ID' }), 'unknown acreage is kept');
+  assert.ok(!S.passes({ price: 250000, state: 'ID' }), 'unknown acreage is hidden by default');
+  assert.ok(S.passes({ price: 250000, state: 'ID' }, { hideUnknownAcres: false }), 'unless the user turns that off');
   assert.ok(!S.passes({ price: 250000, acres: 6, state: 'ID', waterfront: null }, { requireWaterfront: true }));
 });
 

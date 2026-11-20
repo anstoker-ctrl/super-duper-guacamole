@@ -6,7 +6,8 @@
     states: ['WY', 'ID', 'CO', 'UT', 'NM', 'NV', 'OR', 'WA', 'CA', 'AZ'],
     maxPrice: 300000,
     minAcres: 5,
-    requireAcres: true,      // drop listings below minAcres (unknown acreage is kept but flagged)
+    requireAcres: true,      // drop listings below minAcres
+    hideUnknownAcres: true,  // drop listings with no acreage on record
     requireWaterfront: false,
     defaultOccupancy: 0.45,  // short-term rental occupancy when a nightly rate is entered
     expenseRatio: 0.35,      // share of STR revenue lost to fees, cleaning, utilities, etc.
@@ -86,6 +87,7 @@
     if (!(l.price > 0) || l.price > prefs.maxPrice) return false;
     if (prefs.states.length && l.state && !prefs.states.includes(String(l.state).toUpperCase())) return false;
     const acres = acresOf(l);
+    if (acres == null && prefs.hideUnknownAcres) return false;
     if (prefs.requireAcres && acres != null && acres < prefs.minAcres) return false;
     if (prefs.requireWaterfront && waterfrontOf(l) !== true) return false;
     return true;
