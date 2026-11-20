@@ -1,0 +1,53 @@
+:root {
+  --bg: #f7f5f0; --panel: #fff; --text: #1f2421; --muted: #6b716c; --line: #e2ded4;
+  --accent: #2f5d3a; --accent-2: #b45309; --hi: #15803d; --mid: #ca8a04; --lo: #6b7280; --danger: #b91c1c;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #151816; --panel: #1e2320; --text: #e8ebe7; --muted: #9aa39c; --line: #2f3632; --accent: #6fbf82; --accent-2: #f59e0b; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; background: var(--bg); color: var(--text); }
+header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 1000; flex-wrap: wrap; }
+header h1 { margin: 0; font-size: 20px; color: var(--accent); }
+.spacer { flex: 1; }
+main { display: grid; grid-template-columns: 300px 1fr; gap: 16px; padding: 16px; }
+aside section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+aside h2 { font-size: 15px; margin: 0 0 8px; }
+label { display: block; margin: 6px 0; font-size: 13px; }
+label.row { display: flex; align-items: center; gap: 6px; }
+input:not([type=checkbox]), select, textarea { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; }
+fieldset { border: 1px solid var(--line); border-radius: 6px; margin: 8px 0; }
+.states { display: grid; grid-template-columns: repeat(3, 1fr); }
+button { font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--text); cursor: pointer; }
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.link { border: 0; background: none; color: var(--muted); text-decoration: underline; padding: 4px 0; }
+button.danger { color: var(--danger); }
+.muted { color: var(--muted); } .small { font-size: 12px; }
+.warn { background: #fef3c7; color: #78350f; padding: 8px; border-radius: 6px; font-size: 12px; }
+#map { height: 380px; border-radius: 10px; border: 1px solid var(--line); }
+.card { display: flex; gap: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+.card.is-hidden { opacity: .5; }
+.card h3 { margin: 0; font-size: 16px; }
+.card p { margin: 4px 0; }
+.score { flex: 0 0 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 20px; color: #fff; }
+.shi { background: var(--hi); } .smid { background: var(--mid); } .slo { background: var(--lo); }
+.body { flex: 1; min-width: 0; }
+.bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 4px 14px; margin: 6px 0; }
+.bar { display: grid; grid-template-columns: 56px 1fr 44px; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.bar i { display: block; height: 6px; background: var(--accent); border-radius: 3px; }
+.bar b { font-weight: 500; text-align: right; }
+.flags span { display: inline-block; font-size: 11px; background: color-mix(in srgb, var(--accent-2) 15%, transparent); color: var(--accent-2); border-radius: 10px; padding: 1px 8px; margin: 0 4px 2px 0; }
+.notes { white-space: pre-wrap; border-left: 3px solid var(--line); padding-left: 8px; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; }
+.actions a { font-size: 13px; color: var(--accent); }
+dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--text); width: min(640px, 94vw); }
+dialog::backdrop { background: rgba(0,0,0,.4); }
+dialog .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+dialog .wide { grid-column: 1 / -1; }
+menu { display: flex; justify-content: flex-end; gap: 8px; padding: 0; margin: 12px 0 0; }
+@media (max-width: 800px) {
+  main { grid-template-columns: 1fr; padding: 12px; }
+  #map { height: 280px; }
+  dialog .grid { grid-template-columns: 1fr; }
+}
